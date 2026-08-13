@@ -45,14 +45,14 @@ bash scripts/run_eval.sh libero_goal 1
 bash scripts/run_eval.sh libero_goal 10
 ```
 
-脚本会在后台启动官方策略服务、等待端口就绪，再启动 LIBERO 客户端，并把日志和视频保存到 `results/raw/`。不同上游版本的 CLI 参数可能变化，因此运行前会校验固定 commit。
+脚本会在后台启动官方策略服务、通过 `/healthz` 等待 checkpoint 加载完成，再启动 LIBERO 客户端，并把日志和视频保存到 `results/raw/`。首次启动可下载较大的模型文件，因此默认允许最多等待 1 小时。
 
 ## 实验设计
 
 采用分层验证，避免把依赖问题、模型问题和仿真问题混在一起：
 
 ```text
-GPU / Docker 预检
+GPU / 系统预检
         ↓
 固定 openpi commit 与子模块
         ↓
