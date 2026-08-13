@@ -11,8 +11,12 @@ from pathlib import Path
 
 PATTERNS = {
     "total_episodes": [r"Total episodes:\s*(\d+)", r"total episodes[^0-9]*(\d+)"],
-    "total_successes": [r"Total successes:\s*(\d+)", r"total successes[^0-9]*(\d+)"],
-    "success_rate": [r"Overall success rate:\s*([0-9.]+)", r"success rate[^0-9]*([0-9.]+)"],
+    "total_successes": [r"Total successes:\s*(\d+)", r"# successes:\s*(\d+)"],
+    "success_rate": [
+        r"Overall success rate:\s*([0-9.]+)",
+        r"Total success rate:\s*([0-9.]+)",
+        r"Current total success rate:\s*([0-9.]+)",
+    ],
 }
 
 
