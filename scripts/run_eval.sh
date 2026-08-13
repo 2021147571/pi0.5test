@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export PATH="${HOME}/.local/bin:${PATH}"
+
 SUITE="${1:-libero_goal}"
 TRIALS="${2:-1}"
 DATA_ROOT="${PI05_DATA_ROOT:-/root/autodl-tmp/pi05-libero}"
@@ -47,7 +49,8 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-OPENPI_DATA_HOME="${OPENPI_DATA_HOME}" uv run scripts/serve_policy.py --env LIBERO --port "${SERVER_PORT}"   >"${SERVER_LOG}" 2>&1 &
+OPENPI_DATA_HOME="${OPENPI_DATA_HOME}" uv run scripts/serve_policy.py --env LIBERO --port "${SERVER_PORT}" \
+  >"${SERVER_LOG}" 2>&1 &
 SERVER_PID=$!
 
 server_ready=0
@@ -72,4 +75,10 @@ fi
 
 export PYTHONPATH="${OPENPI_DIR}/third_party/libero${PYTHONPATH:+:${PYTHONPATH}}"
 export MUJOCO_GL
-"${OPENPI_DIR}/examples/libero/.venv/bin/python" examples/libero/main.py   --host 127.0.0.1   --port "${SERVER_PORT}"   --task-suite-name "${SUITE}"   --num-trials-per-task "${TRIALS}"   --video-out-path "${RESULT_ROOT}/videos-${SUITE}-trials${TRIALS}"   2>&1 | tee "${LOG_FILE}"
+"${OPENPI_DIR}/examples/libero/.venv/bin/python" examples/libero/main.py \
+  --host 127.0.0.1 \
+  --port "${SERVER_PORT}" \
+  --task-suite-name "${SUITE}" \
+  --num-trials-per-task "${TRIALS}" \
+  --video-out-path "${RESULT_ROOT}/videos-${SUITE}-trials${TRIALS}" \
+  2>&1 | tee "${LOG_FILE}"
