@@ -21,10 +21,11 @@ PATTERNS = {
 
 
 def last_match(text: str, patterns: list[str], cast):
-    matches: list[str] = []
+    matches: list[tuple[int, str]] = []
     for pattern in patterns:
-        matches.extend(re.findall(pattern, text, flags=re.IGNORECASE))
-    return cast(matches[-1]) if matches else None
+        for match in re.finditer(pattern, text, flags=re.IGNORECASE):
+            matches.append((match.start(1), match.group(1)))
+    return cast(max(matches, key=lambda item: item[0])[1]) if matches else None
 
 
 def main() -> None:
