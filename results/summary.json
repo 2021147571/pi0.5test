@@ -1,0 +1,9 @@
+{
+  "source_log": "results/raw/eval-libero_goal-trials1-20260814-044301.log",
+  "suite": "libero_goal",
+  "trials_per_task": 1,
+  "total_episodes": 10,
+  "total_successes": 10,
+  "success_rate": 1.0,
+  "video_count": 10
+}
