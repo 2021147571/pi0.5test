@@ -33,13 +33,13 @@ bash scripts/preflight.sh
 bash scripts/install.sh
 ```
 
-先运行一个任务、一个 trial 的低成本测试：
+先运行一次低成本测试：`libero_goal` 共 10 个任务，每个任务运行 1 个 trial（总计 10 个 episodes）：
 
 ```bash
 bash scripts/run_eval.sh libero_goal 1
 ```
 
-确认闭环正常后，再扩大试验次数：
+确认闭环正常后，再把每个任务扩大到 10 个 trials（总计 100 个 episodes）：
 
 ```bash
 bash scripts/run_eval.sh libero_goal 10
