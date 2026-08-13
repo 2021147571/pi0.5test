@@ -45,14 +45,21 @@ bash scripts/run_eval.sh libero_goal 1
 bash scripts/run_eval.sh libero_goal 10
 ```
 
-脚本会在后台启动官方策略服务、等待端口就绪，再启动 LIBERO 客户端，并把日志和视频保存到 `results/raw/`。不同上游版本的 CLI 参数可能变化，因此运行前会校验固定 commit。
+脚本会在后台启动官方策略服务、通过 `/healthz` 等待 checkpoint 加载完成，再启动 LIBERO 客户端，并把日志和视频保存到 `results/raw/`。首次启动可下载较大的模型文件，因此默认允许最多等待 1 小时。
+
+如果官方 GCS 在当前机房速度过低，可安装 `aria2` 后使用可续传的公开镜像脚本。该脚本固定检查 6 个大分片的 SHA-256 与总字节数：
+
+```bash
+apt-get update && apt-get install -y aria2
+bash scripts/download_checkpoint_mirror.sh
+```
 
 ## 实验设计
 
 采用分层验证，避免把依赖问题、模型问题和仿真问题混在一起：
 
 ```text
-GPU / Docker 预检
+GPU / 系统预检
         ↓
 固定 openpi commit 与子模块
         ↓
@@ -75,13 +82,19 @@ LIBERO EGL 离屏渲染与客户端
 
 ## 结果
 
-实测后由以下命令生成摘要：
+2026-08-14 在 RTX 5090 上完成 `libero_goal` 端到端 smoke evaluation：
+
+| Trials/task | Episodes | Successes | Success rate | Videos |
+|---:|---:|---:|---:|---:|
+| 1 | 10 | 10 | 100% | 10 |
+
+详细环境、逐任务记录和已知警告见 [`results/README.md`](results/README.md)，机器可读摘要见 [`results/summary.json`](results/summary.json)。该单次结果只用于确认复现闭环，不等同于多 trial 的论文级统计。
+
+可从任意原始日志重新生成摘要：
 
 ```bash
-python scripts/summarize_results.py results/raw/eval.log --output results/summary.json
+python3 scripts/summarize_results.py results/raw/eval.log --output results/summary.json
 ```
-
-结果模板见 [`results/README.md`](results/README.md)。
 
 ## 复现边界
 

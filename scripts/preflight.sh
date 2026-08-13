@@ -16,7 +16,7 @@ if command -v docker >/dev/null; then
   docker --version
   docker compose version || true
 else
-  echo "Docker is not installed. scripts/install.sh will report the required action."
+  echo "Docker is not installed. Native AutoDL mode does not require it."
 fi
 
 echo "===== NVIDIA CONTAINER RUNTIME ====="
@@ -24,3 +24,6 @@ if command -v docker >/dev/null; then
   docker info 2>/dev/null | grep -E 'Runtimes|Default Runtime' || true
 fi
 
+echo "===== NETWORK TOOLS ====="
+command -v git
+command -v curl

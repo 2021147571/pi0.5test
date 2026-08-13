@@ -11,16 +11,21 @@ from pathlib import Path
 
 PATTERNS = {
     "total_episodes": [r"Total episodes:\s*(\d+)", r"total episodes[^0-9]*(\d+)"],
-    "total_successes": [r"Total successes:\s*(\d+)", r"total successes[^0-9]*(\d+)"],
-    "success_rate": [r"Overall success rate:\s*([0-9.]+)", r"success rate[^0-9]*([0-9.]+)"],
+    "total_successes": [r"Total successes:\s*(\d+)", r"# successes:\s*(\d+)"],
+    "success_rate": [
+        r"Overall success rate:\s*([0-9.]+)",
+        r"Total success rate:\s*([0-9.]+)",
+        r"Current total success rate:\s*([0-9.]+)",
+    ],
 }
 
 
 def last_match(text: str, patterns: list[str], cast):
-    matches: list[str] = []
+    matches: list[tuple[int, str]] = []
     for pattern in patterns:
-        matches.extend(re.findall(pattern, text, flags=re.IGNORECASE))
-    return cast(matches[-1]) if matches else None
+        for match in re.finditer(pattern, text, flags=re.IGNORECASE):
+            matches.append((match.start(1), match.group(1)))
+    return cast(max(matches, key=lambda item: item[0])[1]) if matches else None
 
 
 def main() -> None:

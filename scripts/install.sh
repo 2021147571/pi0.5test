@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export PATH="${HOME}/.local/bin:${PATH}"
+
 OPENPI_COMMIT="15a9616a00943ada6c20a0f158e3adb39df2ccac"
 DATA_ROOT="${PI05_DATA_ROOT:-/root/autodl-tmp/pi05-libero}"
 OPENPI_DIR="${DATA_ROOT}/openpi"
+OPENPI_REPO_URL="${PI05_OPENPI_REPO_URL:-https://github.com/Physical-Intelligence/openpi.git}"
 
 mkdir -p "${DATA_ROOT}" "${DATA_ROOT}/cache" "${DATA_ROOT}/results"
 
@@ -21,11 +24,10 @@ if ! command -v git >/dev/null; then
 fi
 if ! command -v uv >/dev/null; then
   curl -LsSf https://astral.sh/uv/install.sh | sh
-  export PATH="${HOME}/.local/bin:${PATH}"
 fi
 
 if [[ ! -d "${OPENPI_DIR}/.git" ]]; then
-  git clone --recurse-submodules https://github.com/Physical-Intelligence/openpi.git "${OPENPI_DIR}"
+  git clone --recurse-submodules "${OPENPI_REPO_URL}" "${OPENPI_DIR}"
 fi
 
 git -C "${OPENPI_DIR}" fetch origin "${OPENPI_COMMIT}"
@@ -38,6 +40,12 @@ test "${ACTUAL_COMMIT}" = "${OPENPI_COMMIT}"
 cd "${OPENPI_DIR}"
 GIT_LFS_SKIP_SMUDGE=1 uv sync
 GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
+
+# openpi uses gsutil's parallel copy path for the public checkpoint bucket.
+# Without it, the fallback downloader copies the ~12.4 GB checkpoint serially.
+if ! command -v gsutil >/dev/null; then
+  UV_DEFAULT_INDEX="${PI05_PYPI_INDEX:-https://pypi.org/simple}" uv tool install gsutil
+fi
 
 # LIBERO needs an older, isolated Python environment. Keeping it separate also
 # prevents its MuJoCo / torch constraints from changing the policy server env.

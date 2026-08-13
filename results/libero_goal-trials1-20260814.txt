@@ -1,0 +1,26 @@
+π0.5-LIBERO evaluation record
+Date: 2026-08-14 (Asia/Shanghai)
+Suite: libero_goal
+Trials per task: 1
+Checkpoint: pi05_libero
+openpi commit: 15a9616a00943ada6c20a0f158e3adb39df2ccac
+
+open the middle drawer of the cabinet: success
+put the bowl on the stove: success
+put the wine bottle on top of the cabinet: success
+open the top drawer and put the bowl inside: success
+put the bowl on top of the cabinet: success
+push the plate to the front of the stove: success
+put the cream cheese in the bowl: success
+turn on the stove: success
+put the bowl on the plate: success
+put the wine bottle on the rack: success
+
+Total success rate: 1.0
+Total episodes: 10
+Total successes: 10
+Video files: 10
+
+The official client printed EGL_NOT_INITIALIZED from ignored Python
+destructors after the final metrics. It did not change the process result,
+episode count, saved videos, or summary above.
