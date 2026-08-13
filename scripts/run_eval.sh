@@ -76,9 +76,9 @@ fi
 export PYTHONPATH="${OPENPI_DIR}/third_party/libero${PYTHONPATH:+:${PYTHONPATH}}"
 export MUJOCO_GL
 "${OPENPI_DIR}/examples/libero/.venv/bin/python" examples/libero/main.py \
-  --host 127.0.0.1 \
-  --port "${SERVER_PORT}" \
-  --task-suite-name "${SUITE}" \
-  --num-trials-per-task "${TRIALS}" \
-  --video-out-path "${RESULT_ROOT}/videos-${SUITE}-trials${TRIALS}" \
+  --args.host 127.0.0.1 \
+  --args.port "${SERVER_PORT}" \
+  --args.task-suite-name "${SUITE}" \
+  --args.num-trials-per-task "${TRIALS}" \
+  --args.video-out-path "${RESULT_ROOT}/videos-${SUITE}-trials${TRIALS}" \
   2>&1 | tee "${LOG_FILE}"
