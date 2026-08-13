@@ -4,6 +4,7 @@ set -euo pipefail
 OPENPI_COMMIT="15a9616a00943ada6c20a0f158e3adb39df2ccac"
 DATA_ROOT="${PI05_DATA_ROOT:-/root/autodl-tmp/pi05-libero}"
 OPENPI_DIR="${DATA_ROOT}/openpi"
+OPENPI_REPO_URL="${PI05_OPENPI_REPO_URL:-https://github.com/Physical-Intelligence/openpi.git}"
 
 mkdir -p "${DATA_ROOT}" "${DATA_ROOT}/cache" "${DATA_ROOT}/results"
 
@@ -22,7 +23,7 @@ if ! command -v uv >/dev/null; then
 fi
 
 if [[ ! -d "${OPENPI_DIR}/.git" ]]; then
-  git clone --recurse-submodules https://github.com/Physical-Intelligence/openpi.git "${OPENPI_DIR}"
+  git clone --recurse-submodules "${OPENPI_REPO_URL}" "${OPENPI_DIR}"
 fi
 
 git -C "${OPENPI_DIR}" fetch origin "${OPENPI_COMMIT}"
@@ -36,10 +37,7 @@ cd "${OPENPI_DIR}"
 GIT_LFS_SKIP_SMUDGE=1 uv sync
 GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
 
-# LIBERO needs an older, isolated Python environment. Keeping it separate also
-# prevents its MuJoCo / torch constraints from changing the policy server env.
 uv venv --python 3.8 examples/libero/.venv
-# shellcheck disable=SC1091
 source examples/libero/.venv/bin/activate
 uv pip sync examples/libero/requirements.txt third_party/libero/requirements.txt   --extra-index-url https://download.pytorch.org/whl/cu113   --index-strategy=unsafe-best-match
 uv pip install -e packages/openpi-client
