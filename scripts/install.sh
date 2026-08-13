@@ -41,6 +41,12 @@ cd "${OPENPI_DIR}"
 GIT_LFS_SKIP_SMUDGE=1 uv sync
 GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
 
+# openpi uses gsutil's parallel copy path for the public checkpoint bucket.
+# Without it, the fallback downloader copies the ~12.4 GB checkpoint serially.
+if ! command -v gsutil >/dev/null; then
+  UV_DEFAULT_INDEX="${PI05_PYPI_INDEX:-https://pypi.org/simple}" uv tool install gsutil
+fi
+
 # LIBERO needs an older, isolated Python environment. Keeping it separate also
 # prevents its MuJoCo / torch constraints from changing the policy server env.
 uv venv --python 3.8 examples/libero/.venv
