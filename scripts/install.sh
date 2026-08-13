@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export PATH="${HOME}/.local/bin:${PATH}"
+
 OPENPI_COMMIT="15a9616a00943ada6c20a0f158e3adb39df2ccac"
 DATA_ROOT="${PI05_DATA_ROOT:-/root/autodl-tmp/pi05-libero}"
 OPENPI_DIR="${DATA_ROOT}/openpi"
@@ -10,7 +12,10 @@ mkdir -p "${DATA_ROOT}" "${DATA_ROOT}/cache" "${DATA_ROOT}/results"
 
 if command -v apt-get >/dev/null; then
   apt-get update
-  DEBIAN_FRONTEND=noninteractive apt-get install -y     curl make g++ clang libosmesa6-dev libgl1-mesa-glx libegl1     libglew-dev libglfw3-dev libgles2-mesa-dev libglib2.0-0     libsm6 libxrender1 libxext6
+  DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    curl make g++ clang libosmesa6-dev libgl1-mesa-glx libegl1 \
+    libglew-dev libglfw3-dev libgles2-mesa-dev libglib2.0-0 \
+    libsm6 libxrender1 libxext6
 fi
 
 if ! command -v git >/dev/null; then
@@ -19,7 +24,6 @@ if ! command -v git >/dev/null; then
 fi
 if ! command -v uv >/dev/null; then
   curl -LsSf https://astral.sh/uv/install.sh | sh
-  export PATH="${HOME}/.local/bin:${PATH}"
 fi
 
 if [[ ! -d "${OPENPI_DIR}/.git" ]]; then
@@ -37,9 +41,14 @@ cd "${OPENPI_DIR}"
 GIT_LFS_SKIP_SMUDGE=1 uv sync
 GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
 
+# LIBERO needs an older, isolated Python environment. Keeping it separate also
+# prevents its MuJoCo / torch constraints from changing the policy server env.
 uv venv --python 3.8 examples/libero/.venv
+# shellcheck disable=SC1091
 source examples/libero/.venv/bin/activate
-uv pip sync examples/libero/requirements.txt third_party/libero/requirements.txt   --extra-index-url https://download.pytorch.org/whl/cu113   --index-strategy=unsafe-best-match
+uv pip sync examples/libero/requirements.txt third_party/libero/requirements.txt \
+  --extra-index-url https://download.pytorch.org/whl/cu113 \
+  --index-strategy=unsafe-best-match
 uv pip install -e packages/openpi-client
 uv pip install -e third_party/libero
 deactivate
