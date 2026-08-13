@@ -24,7 +24,7 @@
 
 ## 快速开始
 
-推荐 Ubuntu 22.04、NVIDIA Container Toolkit 和 Docker Compose。AutoDL 数据盘建议使用 `/root/autodl-tmp`。
+推荐 Ubuntu 22.04。脚本默认使用两个隔离环境：openpi 策略服务使用上游 Python 版本，LIBERO 客户端使用 Python 3.8；因此适用于不能运行 Docker-in-Docker 的 AutoDL 容器。数据盘建议使用 `/root/autodl-tmp`。
 
 ```bash
 git clone https://github.com/2021147571/pi0.5test.git
@@ -45,7 +45,7 @@ bash scripts/run_eval.sh libero_goal 1
 bash scripts/run_eval.sh libero_goal 10
 ```
 
-脚本会打印最终需要执行的官方 Docker Compose 命令，并把日志保存到 `results/raw/`。不同上游版本的 CLI 参数可能变化，因此运行前会校验固定 commit。
+脚本会在后台启动官方策略服务、等待端口就绪，再启动 LIBERO 客户端，并把日志和视频保存到 `results/raw/`。不同上游版本的 CLI 参数可能变化，因此运行前会校验固定 commit。
 
 ## 实验设计
 
@@ -95,4 +95,3 @@ python scripts/summarize_results.py results/raw/eval.log --output results/summar
 - [Physical Intelligence/openpi](https://github.com/Physical-Intelligence/openpi)
 - [openpi LIBERO guide](https://github.com/Physical-Intelligence/openpi/tree/main/examples/libero)
 - [π0.5 project page](https://www.physicalintelligence.company/blog/pi05)
-
