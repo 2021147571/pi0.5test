@@ -1,0 +1,11 @@
+work/
+cache/
+*.log
+__pycache__/
+.pytest_cache/
+.venv/
+results/raw/*
+!results/raw/.gitkeep
+results/videos/*
+!results/videos/.gitkeep
+
