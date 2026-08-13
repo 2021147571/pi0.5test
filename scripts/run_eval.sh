@@ -26,14 +26,45 @@ LOG_FILE="${RESULT_ROOT}/eval-${SUITE}-trials${TRIALS}-$(date +%Y%m%d-%H%M%S).lo
 
 export OPENPI_DATA_HOME="${DATA_ROOT}/cache"
 export MUJOCO_GL="${MUJOCO_GL:-egl}"
-export SERVER_ARGS="--env LIBERO"
-export CLIENT_ARGS="--args.task-suite-name ${SUITE} --args.num-trials-per-task ${TRIALS}"
-
+export LIBERO_CONFIG_PATH="${DATA_ROOT}/libero-config"
+export PYOPENGL_PLATFORM="egl"
+export MUJOCO_EGL_DEVICE_ID="0"
 echo "Suite: ${SUITE}"
 echo "Trials per task: ${TRIALS}"
 echo "Checkpoint: gs://openpi-assets/checkpoints/pi05_libero"
 echo "Log: ${LOG_FILE}"
 
 cd "${OPENPI_DIR}"
-docker compose -f examples/libero/compose.yml up --build 2>&1 | tee "${LOG_FILE}"
+SERVER_LOG="${RESULT_ROOT}/server-${SUITE}-trials${TRIALS}-$(date +%Y%m%d-%H%M%S).log"
 
+cleanup() {
+  if [[ -n "${SERVER_PID:-}" ]] && kill -0 "${SERVER_PID}" 2>/dev/null; then
+    kill "${SERVER_PID}" 2>/dev/null || true
+    wait "${SERVER_PID}" 2>/dev/null || true
+  fi
+}
+trap cleanup EXIT INT TERM
+
+OPENPI_DATA_HOME="${OPENPI_DATA_HOME}" uv run scripts/serve_policy.py --env LIBERO \
+  >"${SERVER_LOG}" 2>&1 &
+SERVER_PID=$!
+
+for _ in $(seq 1 180); do
+  if grep -Eqi "listening|server started|port 8000" "${SERVER_LOG}"; then
+    break
+  fi
+  if ! kill -0 "${SERVER_PID}" 2>/dev/null; then
+    echo "Policy server stopped unexpectedly. See ${SERVER_LOG}" >&2
+    tail -n 80 "${SERVER_LOG}" >&2 || true
+    exit 1
+  fi
+  sleep 2
+done
+
+export PYTHONPATH="${OPENPI_DIR}/third_party/libero${PYTHONPATH:+:${PYTHONPATH}}"
+export MUJOCO_GL
+"${OPENPI_DIR}/examples/libero/.venv/bin/python" examples/libero/main.py \
+  --task-suite-name "${SUITE}" \
+  --num-trials-per-task "${TRIALS}" \
+  --video-out-path "${RESULT_ROOT}/videos-${SUITE}-trials${TRIALS}" \
+  2>&1 | tee "${LOG_FILE}"
