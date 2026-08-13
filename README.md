@@ -60,7 +60,7 @@ GPU / Docker 预检
         ↓
 LIBERO EGL 离屏渲染与客户端
         ↓
-单任务 smoke test
+10任务 × 1 trial 的 smoke test
         ↓
 多任务、多 trial 正式评测
 ```
