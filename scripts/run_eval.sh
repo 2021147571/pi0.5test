@@ -7,6 +7,8 @@ DATA_ROOT="${PI05_DATA_ROOT:-/root/autodl-tmp/pi05-libero}"
 OPENPI_DIR="${DATA_ROOT}/openpi"
 RESULT_ROOT="${PI05_RESULT_ROOT:-$(pwd)/results/raw}"
 OPENPI_COMMIT="15a9616a00943ada6c20a0f158e3adb39df2ccac"
+SERVER_PORT="${PI05_SERVER_PORT:-8000}"
+SERVER_START_TIMEOUT="${PI05_SERVER_START_TIMEOUT:-3600}"
 
 if [[ ! -d "${OPENPI_DIR}/.git" ]]; then
   echo "Run scripts/install.sh first." >&2
@@ -45,12 +47,13 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-OPENPI_DATA_HOME="${OPENPI_DATA_HOME}" uv run scripts/serve_policy.py --env LIBERO \
-  >"${SERVER_LOG}" 2>&1 &
+OPENPI_DATA_HOME="${OPENPI_DATA_HOME}" uv run scripts/serve_policy.py --env LIBERO --port "${SERVER_PORT}"   >"${SERVER_LOG}" 2>&1 &
 SERVER_PID=$!
 
-for _ in $(seq 1 180); do
-  if grep -Eqi "listening|server started|port 8000" "${SERVER_LOG}"; then
+server_ready=0
+for _ in $(seq 1 "${SERVER_START_TIMEOUT}"); do
+  if curl --silent --show-error --fail "http://127.0.0.1:${SERVER_PORT}/healthz" >/dev/null 2>&1; then
+    server_ready=1
     break
   fi
   if ! kill -0 "${SERVER_PID}" 2>/dev/null; then
@@ -58,13 +61,15 @@ for _ in $(seq 1 180); do
     tail -n 80 "${SERVER_LOG}" >&2 || true
     exit 1
   fi
-  sleep 2
+  sleep 1
 done
+
+if [[ "${server_ready}" -ne 1 ]]; then
+  echo "Policy server did not become healthy within ${SERVER_START_TIMEOUT}s. See ${SERVER_LOG}" >&2
+  tail -n 80 "${SERVER_LOG}" >&2 || true
+  exit 1
+fi
 
 export PYTHONPATH="${OPENPI_DIR}/third_party/libero${PYTHONPATH:+:${PYTHONPATH}}"
 export MUJOCO_GL
-"${OPENPI_DIR}/examples/libero/.venv/bin/python" examples/libero/main.py \
-  --task-suite-name "${SUITE}" \
-  --num-trials-per-task "${TRIALS}" \
-  --video-out-path "${RESULT_ROOT}/videos-${SUITE}-trials${TRIALS}" \
-  2>&1 | tee "${LOG_FILE}"
+"${OPENPI_DIR}/examples/libero/.venv/bin/python" examples/libero/main.py   --host 127.0.0.1   --port "${SERVER_PORT}"   --task-suite-name "${SUITE}"   --num-trials-per-task "${TRIALS}"   --video-out-path "${RESULT_ROOT}/videos-${SUITE}-trials${TRIALS}"   2>&1 | tee "${LOG_FILE}"
