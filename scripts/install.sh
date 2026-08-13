@@ -9,10 +9,7 @@ mkdir -p "${DATA_ROOT}" "${DATA_ROOT}/cache" "${DATA_ROOT}/results"
 
 if command -v apt-get >/dev/null; then
   apt-get update
-  DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    curl make g++ clang libosmesa6-dev libgl1-mesa-glx libegl1 \
-    libglew-dev libglfw3-dev libgles2-mesa-dev libglib2.0-0 \
-    libsm6 libxrender1 libxext6
+  DEBIAN_FRONTEND=noninteractive apt-get install -y     curl make g++ clang libosmesa6-dev libgl1-mesa-glx libegl1     libglew-dev libglfw3-dev libgles2-mesa-dev libglib2.0-0     libsm6 libxrender1 libxext6
 fi
 
 if ! command -v git >/dev/null; then
@@ -44,9 +41,7 @@ GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
 uv venv --python 3.8 examples/libero/.venv
 # shellcheck disable=SC1091
 source examples/libero/.venv/bin/activate
-uv pip sync examples/libero/requirements.txt third_party/libero/requirements.txt \
-  --extra-index-url https://download.pytorch.org/whl/cu113 \
-  --index-strategy=unsafe-best-match
+uv pip sync examples/libero/requirements.txt third_party/libero/requirements.txt   --extra-index-url https://download.pytorch.org/whl/cu113   --index-strategy=unsafe-best-match
 uv pip install -e packages/openpi-client
 uv pip install -e third_party/libero
 deactivate
